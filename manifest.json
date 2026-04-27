@@ -1,0 +1,22 @@
+{
+  "manifest_version": 3,
+  "name": "YouTube Black Screen",
+  "version": "1.0",
+  "description": "Adds a black screen before YouTube homepage videos to reduce distraction.",
+  "permissions": ["storage"],
+  "content_scripts": [
+    {
+      "matches": ["https://www.youtube.com/*"],
+      "js": ["content/content-script.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "action": {
+    "default_popup": "popup/popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  }
+}
