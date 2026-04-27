@@ -1,8 +1,9 @@
 // YouTube Black Screen — content-script.js
 // Injects a dismissible black screen inside #contents before the video grid
 
-const STORAGE_KEY = "yt_blackscreen_enabled";
 const OVERLAY_ID = "yt-blackscreen-overlay";
+const HEIGHT_KEY = "yt_blackscreen_height";
+const DEFAULT_HEIGHT = 100; // vh
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -24,7 +25,7 @@ function overlayExists() {
 
 // ─── Create the overlay ───────────────────────────────────────────────────────
 
-function createOverlay() {
+function createOverlay(heightVh = DEFAULT_HEIGHT) {
   const overlay = document.createElement("div");
   overlay.id = OVERLAY_ID;
 
@@ -40,7 +41,7 @@ function createOverlay() {
     padding: 48px 24px;
     box-sizing: border-box;
     margin-bottom: 24px;
-    min-height: 100vh;
+    min-height: ${heightVh}vh;
     position: relative;
     font-family: 'Google Sans', Roboto, sans-serif;
   `;
@@ -121,9 +122,20 @@ function injectOverlay() {
   const contents = getContents();
   if (!contents) return;
 
-  const overlay = createOverlay();
-  contents.insertBefore(overlay, contents.firstChild);
+  chrome.storage.sync.get({ [HEIGHT_KEY]: DEFAULT_HEIGHT }, (data) => {
+    const overlay = createOverlay(data[HEIGHT_KEY]);
+    contents.insertBefore(overlay, contents.firstChild);
+  });
 }
+
+// ─── Live height updates from popup ───────────────────────────────────────────
+
+chrome.runtime.onMessage.addListener((msg) => {
+  if (msg.type === "SET_HEIGHT") {
+    const overlay = document.getElementById(OVERLAY_ID);
+    if (overlay) overlay.style.minHeight = `${msg.value}vh`;
+  }
+});
 
 // ─── Watch for SPA navigation & lazy DOM ──────────────────────────────────────
 
